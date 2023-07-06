@@ -1,0 +1,20 @@
+{
+  "name": "simple-employee-department-cms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poisoned-eden/simple-employee-department-cms.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/poisoned-eden/simple-employee-department-cms/issues"
+  },
+  "homepage": "https://github.com/poisoned-eden/simple-employee-department-cms#readme"
+}
