@@ -45,29 +45,34 @@ async function viewMenu() {
 
 async function getDepts() {
     return db.promise().query("SELECT * FROM departments;");
-}
+};
 
 async function viewDepts() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
+    getDepts().then( ([rows, fields]) => {
             console.table(rows);
             viewMenu();
         })
         .catch(console.log);
+};
+
+async function getRoles() {
+    return db.promise().query("SELECT * FROM roles;");
 };
 
 async function viewRoles() {
-    db.promise().query("SELECT * FROM roles;")
-        .then( ([rows, fields]) => {
+    getRoles().then( ([rows, fields]) => {
             console.table(rows);
             viewMenu();
         })
         .catch(console.log);
 };
 
+async function getEmployees() {
+    return db.promise().query("SELECT * FROM employees;");
+};
+
 async function viewEmployees() {
-    db.promise().query("SELECT * FROM employees;")
-        .then( ([rows, fields]) => {
+    getEmployees().then(([rows, fields]) => {
             console.table(rows);
             viewMenu();
         })
@@ -80,20 +85,28 @@ async function addDept() {
     db.promise().execute("INSERT INTO departments (department_name) VALUES (?)", [newDept.deptName])
         .then(console.log(newDept.deptName + ' added to departments'))
         .catch((err) => console.error(err));
+
+    viewMenu();
 };
 
 async function addRole() {
     // get departments
-
     // push departments into addRoleQ.roleDept
+    getDepts().then(([rows, fields]) => {
+        rows.forEach((department) => {
+            questions.addRoleQ[2].choices.push({
+                name: department.department_name,
+                value: department.id,
+            });
+        })
+    });
 
-
-    
     const newRole = await inquirer.prompt(questions.addRoleQ);
 
-    db.promise().execute("INSERT INTO departments (department_name) VALUES (?)", [newDept.deptName])
-        .then(console.log(newDept.deptName + ' added to departments'))
-        .catch((err) => console.error(err));
+    console.log(newRole);
+    // db.promise().execute("INSERT INTO roles (role_title, salary, department_id) VALUES (?)", [newRole.deptName])
+    //     .then(console.log(newDept.deptName + ' added to departments'))
+    //     .catch((err) => console.error(err));
 };
 
 async function addEmployee() {
