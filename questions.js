@@ -10,7 +10,8 @@ const menu = [
             'Add A Department',
             'Add A Role',
             'Add An Employee',
-            'Update An Employee Role'
+            'Update An Employee Role',
+            'Quit'
         ],
     },
 ];
