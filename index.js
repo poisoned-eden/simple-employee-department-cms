@@ -43,6 +43,10 @@ async function viewMenu() {
     };
 };
 
+async function getDepts() {
+    return db.promise().query("SELECT * FROM departments;");
+}
+
 async function viewDepts() {
     db.promise().query("SELECT * FROM departments;")
         .then( ([rows, fields]) => {
@@ -70,22 +74,26 @@ async function viewEmployees() {
         .catch(console.log);
 };
 
-async function addDept() { // edit
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+async function addDept() { 
+    const newDept = await inquirer.prompt(questions.addDeptQ);
+
+    db.promise().execute("INSERT INTO departments (department_name) VALUES (?)", [newDept.deptName])
+        .then(console.log(newDept.deptName + ' added to departments'))
+        .catch((err) => console.error(err));
 };
 
 async function addRole() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    // get departments
+
+    // push departments into addRoleQ.roleDept
+
+
+    
+    const newRole = await inquirer.prompt(questions.addRoleQ);
+
+    db.promise().execute("INSERT INTO departments (department_name) VALUES (?)", [newDept.deptName])
+        .then(console.log(newDept.deptName + ' added to departments'))
+        .catch((err) => console.error(err));
 };
 
 async function addEmployee() {
