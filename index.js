@@ -90,8 +90,6 @@ async function addDept() {
 };
 
 async function addRole() {
-    // get departments
-    // push departments into addRoleQ.roleDept
     getDepts().then(([rows, fields]) => {
         rows.forEach((department) => {
             questions.addRoleQ[2].choices.push({
@@ -104,27 +102,88 @@ async function addRole() {
     const newRole = await inquirer.prompt(questions.addRoleQ);
 
     console.log(newRole);
-    // db.promise().execute("INSERT INTO roles (role_title, salary, department_id) VALUES (?)", [newRole.deptName])
-    //     .then(console.log(newDept.deptName + ' added to departments'))
-    //     .catch((err) => console.error(err));
+
+    db.promise().execute("INSERT INTO roles SET role_title = ?, salary = ?, department_id = ?;", [newRole.roleTitle, newRole.roleSalary, newRole.roleDept])
+        .then( () => {
+            console.log(`New Role Added.\nTitle: ${newRole.roleTitle}\nSalary: ${newRole.roleSalary}\nDepartment Number: ${newRole.roleDept}`);
+            viewMenu();
+        })
+        .catch((err) => console.error(err));
 };
 
 async function addEmployee() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
+    getRoles().then(([rows, fields]) => {
+        rows.forEach((role) => {
+            questions.addEmployeeQ[2].choices.push({
+                name: role.role_title,
+                value: role.id,
+            });
+        })
+    });
+
+    getEmployees().then(([rows, fields]) => {
+        rows.forEach((employee) => {
+            questions.addEmployeeQ[3].choices.push({
+                name: employee.first_name + ' ' + employee.last_name,
+                value: employee.id,
+            });
+        })
+    });
+
+    const newEmployee = await inquirer.prompt(questions.addEmployeeQ);
+
+    console.log(newEmployee);
+
+    db.promise().execute("INSERT INTO employees SET first_name = ?, last_name = ?, role_id = ?, manager_id = ?;", [newEmployee.firstName, newEmployee.lastName, newEmployee.employeeRole, newEmployee.employeeManager])
+        .then( () => {
+            console.log(`New Employee Added.\nName: ${newEmployee.firstName} ${newEmployee.lastName}\nRole ID: ${newEmployee.employeeRole}\nManager ID: ${newEmployee.employeeManager}`);
             viewMenu();
         })
-        .catch(console.log);
+        .catch((err) => console.error(err));
 };
 
 async function updateEmployee() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
+    getEmployees()
+        .then(([rows, fields]) => {
+            rows.forEach((employee) => {
+                questions.updateEmployeeQ[0].choices.push({
+                    name: employee.first_name + ' ' + employee.last_name,
+                    value: employee.id,
+                });
+            }) 
+            return questions;
+        })
+        .then( () => {return getRoles()})
+        .then(([rows, fields]) => {
+                rows.forEach((role) => {
+                    questions.updateEmployeeQ[1].choices.push({
+                        name: role.role_title,
+                        value: role.id,
+                    });
+                })
+                return questions;
+            })
+        .then( async ( questions ) => {
+            console.log(questions.updateEmployeeQ);
+            const updateEmployee = await inquirer.prompt(questions.updateEmployeeQ);
+
+            db.promise().execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
+            return updateEmployee;
+        })
+        .then( (updateEmployee) => {
+            console.log(`Employee updated.\nEmployee ID: ${updateEmployee.employeeToUpdate} Role ID: ${updateEmployee.updatedRole}`);
             viewMenu();
         })
-        .catch(console.log);
+        .catch((err) => console.error(err));
+
+    
+
+        
+    
+
+    console.log(updateEmployee);
+
+    
 };
 
 viewMenu();
