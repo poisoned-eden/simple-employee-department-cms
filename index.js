@@ -143,47 +143,47 @@ async function addEmployee() {
 };
 
 async function updateEmployee() {
-    getEmployees()
-        .then(([rows, fields]) => {
-            rows.forEach((employee) => {
-                questions.updateEmployeeQ[0].choices.push({
+    
+    try {
+        const employeesList = await getEmployees();
+        employeesList[0].forEach((employee) => {
+            questions.updateEmployeeQ[0].choices.push({
                     name: employee.first_name + ' ' + employee.last_name,
                     value: employee.id,
                 });
-            }) 
-            return questions;
-        })
-        .then( () => {return getRoles()})
-        .then(([rows, fields]) => {
-                rows.forEach((role) => {
-                    questions.updateEmployeeQ[1].choices.push({
-                        name: role.role_title,
-                        value: role.id,
-                    });
-                })
-                return questions;
-            })
-        .then( async ( questions ) => {
-            console.log(questions.updateEmployeeQ);
-            const updateEmployee = await inquirer.prompt(questions.updateEmployeeQ);
-
-            db.promise().execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
-            return updateEmployee;
-        })
-        .then( (updateEmployee) => {
-            console.log(`Employee updated.\nEmployee ID: ${updateEmployee.employeeToUpdate} Role ID: ${updateEmployee.updatedRole}`);
-            viewMenu();
-        })
-        .catch((err) => console.error(err));
-
-    
-
+        });
         
-    
+        const roleList = await getRoles();
+        roleList[0].forEach((role) => {
+            questions.updateEmployeeQ[1].choices.push({
+                name: role.role_title,
+                value: role.id,
+            });
+        });
 
-    console.log(updateEmployee);
+        const updateEmployee = await inquirer.prompt(questions.updateEmployeeQ);
+        
+        const employeeIndex = questions.updateEmployeeQ[0].choices.findIndex((emp) => emp.value == updateEmployee.employeeToUpdate);
+        const saveName = questions.updateEmployeeQ[0].choices[employeeIndex].name;
 
-    
+        const roleIndex = questions.updateEmployeeQ[1].choices.findIndex((emp) => emp.value == updateEmployee.updatedRole);
+        const saveRole = questions.updateEmployeeQ[0].choices[roleIndex].name;
+
+
+
+        db.promise().execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
+
+        console.log(`Employee updated.\n${saveName}'s role changed to ${saveRole}`);
+
+        viewMenu();
+
+    } catch (error) {
+        console.error(error);
+    };
 };
+
+function pushListItems(questionSet, index, [rows, fields]) {
+
+}
 
 viewMenu();
