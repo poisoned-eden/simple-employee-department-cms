@@ -55,7 +55,7 @@ async function getDepts() {
 
 async function getRoles() {
     try {
-        const roles = await db.promise().query("SELECT * FROM roles;");
+        const roles = await db.promise().query("SELECT roles.role_title, roles.salary, departments.department_name FROM roles LEFT JOIN departments ON departments.id = roles.department_id;");
         return roles[0];
     } catch (error) {
         console.error(error);
@@ -64,7 +64,22 @@ async function getRoles() {
 
 async function getEmployees() {
     try {
-        const emps = await db.promise().query("SELECT * FROM employees;");
+        const emps = await db.promise().query(`
+    SELECT
+        employees.id, 
+        employees.first_name, 
+        employees.last_name,
+        departments.department_name, 
+        roles.role_title, 
+        roles.salary, 
+        CONCAT(managers.first_name,' ', managers.last_name) AS manager
+    FROM employee_db.employees 
+    LEFT JOIN 
+        employees AS managers ON employees.manager_id = managers.id
+    LEFT JOIN 
+        roles ON roles.id = employees.role_id
+    LEFT JOIN 
+        departments ON departments.id = roles.department_id;`);
         return emps[0];
     } catch (error) {
         console.error(error);
