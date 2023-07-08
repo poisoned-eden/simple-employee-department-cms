@@ -43,67 +43,179 @@ async function viewMenu() {
     };
 };
 
+// Get from the db
+async function getDepts() {
+    try {
+        const depts = await db.promise().query("SELECT * FROM departments;");
+        return depts[0];
+    } catch (error) {
+        console.error(error);
+    };
+};
+
+async function getRoles() {
+    try {
+        const roles = await db.promise().query("SELECT roles.role_title, roles.salary, departments.department_name FROM roles LEFT JOIN departments ON departments.id = roles.department_id;");
+        return roles[0];
+    } catch (error) {
+        console.error(error);
+    };
+};
+
+async function getEmployees() {
+    try {
+        const emps = await db.promise().query(`
+    SELECT
+        employees.id, 
+        employees.first_name, 
+        employees.last_name,
+        departments.department_name, 
+        roles.role_title, 
+        roles.salary, 
+        CONCAT(managers.first_name,' ', managers.last_name) AS manager
+    FROM employee_db.employees 
+    LEFT JOIN 
+        employees AS managers ON employees.manager_id = managers.id
+    LEFT JOIN 
+        roles ON roles.id = employees.role_id
+    LEFT JOIN 
+        departments ON departments.id = roles.department_id;`);
+        return emps[0];
+    } catch (error) {
+        console.error(error);
+    };
+};
+
+
+// View results
 async function viewDepts() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    console.table( await getDepts());
+    viewMenu();
 };
 
 async function viewRoles() {
-    db.promise().query("SELECT * FROM roles;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    console.table(await getRoles());
+    viewMenu();
 };
 
 async function viewEmployees() {
-    db.promise().query("SELECT * FROM employees;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    console.table(await getEmployees());
+    viewMenu();
 };
 
-async function addDept() { // edit
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+
+// Add to db
+async function addDept() {
+    try {
+        const newDept = await inquirer.prompt(questions.addDeptQ);
+    
+        const dbAddRow = await db.promise().execute("INSERT INTO departments (department_name) VALUES (?)", [newDept.deptName]);
+
+        const dbNewRow = await db.promise().execute("SELECT * FROM departments WHERE id = ?;", [dbAddRow[0].insertId]);
+
+        console.log('Added to departments:');
+        console.table(dbNewRow[0]);
+        
+        viewMenu();
+    } catch (error) {
+        console.error(error);
+    };
 };
 
 async function addRole() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    try {
+        getDepts().forEach((department) => {
+                questions.addRoleQ[2].choices.push({
+                    name: department.department_name,
+                    value: department.id,
+                });
+            });
+
+        const newRole = await inquirer.prompt(questions.addRoleQ);
+
+        console.log(newRole);
+
+        const dbAddRow = await db.promise().execute("INSERT INTO roles SET role_title = ?, salary = ?, department_id = ?;", [newRole.roleTitle, newRole.roleSalary, newRole.roleDept]);
+
+        const dbNewRow = await db.promise().execute("SELECT * FROM roles WHERE id = ?;", [dbAddRow[0].insertId]);
+
+        console.log('Added to roles:');
+        console.table(dbNewRow[0]);
+        
+        viewMenu();
+    } catch (error) {
+        console.error(error);
+    };
 };
 
 async function addEmployee() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+
+    try {
+        const roleList = await getRoles();
+        roleList.forEach((role) => {
+            questions.addEmployeeQ[2].choices.push({
+                name: role.role_title,
+                value: role.id,
+            });
+        });
+
+        const employeesList = await getEmployees();
+        employeesList.forEach((employee) => {
+            questions.addEmployeeQ[3].choices.push({
+                name: employee.first_name + ' ' + employee.last_name,
+                value: employee.id,
+            });
+        });
+
+        const newEmployee = await inquirer.prompt(questions.addEmployeeQ);
+        console.log(newEmployee);
+
+        const dbAddRow = await db.promise().execute("INSERT INTO employees SET first_name = ?, last_name = ?, role_id = ?, manager_id = ?;", [newEmployee.firstName, newEmployee.lastName, newEmployee.employeeRole, newEmployee.employeeManager]);
+
+        const dbNewRow = await db.promise().execute("SELECT * FROM employees WHERE id = ?;", [dbAddRow[0].insertId]);
+
+        console.log('Added to employees:');
+        console.table(dbNewRow[0]);
+
+        viewMenu();
+    } catch (error) {
+        console.error(error);
+    };
 };
 
 async function updateEmployee() {
-    db.promise().query("SELECT * FROM departments;")
-        .then( ([rows, fields]) => {
-            console.table(rows);
-            viewMenu();
-        })
-        .catch(console.log);
+    
+    try {
+        const employeesList = await getEmployees();
+        employeesList[0].forEach((employee) => {
+            questions.updateEmployeeQ[0].choices.push({
+                    name: employee.first_name + ' ' + employee.last_name,
+                    value: employee.id,
+                });
+        });
+        
+        const roleList = await getRoles();
+        roleList[0].forEach((role) => {
+            questions.updateEmployeeQ[1].choices.push({
+                name: role.role_title,
+                value: role.id,
+            });
+        });
+
+        const updateEmployee = await inquirer.prompt(questions.updateEmployeeQ);
+
+        const dbAddRow = await db.promise().execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
+
+        const dbNewRow = await db.promise().execute("SELECT * FROM employees WHERE id = ?;", [dbAddRow[0].insertId]);
+
+        console.log('Updated employee:');
+        console.table(dbNewRow[0]);
+
+        viewMenu();
+
+    } catch (error) {
+        console.error(error);
+    };
 };
 
 viewMenu();

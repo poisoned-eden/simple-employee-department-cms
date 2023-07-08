@@ -68,4 +68,19 @@ const addEmployeeQ = [
     },
 ];
 
-module.exports = {menu, addDeptQ, addRoleQ, addEmployeeQ};
+const updateEmployeeQ = [
+    {
+        type: 'list',
+        name: 'employeeToUpdate',
+        message: 'Which employee would you like to update?',
+        choices: [],
+    },
+    {
+        type: 'list',
+        name: 'updatedRole',
+        message: 'Choose the employees new role',
+        choices: [],
+    },
+];
+
+module.exports = {menu, addDeptQ, addRoleQ, addEmployeeQ, updateEmployeeQ};
