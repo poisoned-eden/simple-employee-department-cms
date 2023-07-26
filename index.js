@@ -17,41 +17,60 @@ async function init() {
         };
     });
 
+    async function menuLoop () {
+        var menuChoice = "";
+        
+        do {
+            console.log(menuChoice + ' not quit');
+            menuChoice = await viewMenu();
+            console.log(menuChoice);
+            enactChoice(menuChoice);
+            console.log('------');
+        } while (menuChoice != 'Quit');
+    };
+
     async function viewMenu() {
         try {
             const mainMenu = await inquirer.prompt(questions.menu);
-        
-            switch (mainMenu.menuChoice) {
-                case 'View All Departments':
-                    viewDepts();
-                    break;
-                case 'View All Roles':
-                    viewRoles();
-                    break;
-                case 'View All Employees':
-                    viewEmployees();
-                    break;
-                case 'Add A Department':
-                    addDept();
-                    break;
-                case 'Add A Role':
-                    addRole();
-                    break;
-                case 'Add An Employee':
-                    addEmployee();
-                    break;
-                case 'Update An Employee Role':
-                    updateEmployee();
-                    break;
-                default:
-                    console.log('Thank you for using Simple Employee Department CMS');
-                    db.end();
-            };
+            return mainMenu.menuChoice;
         } catch (error) {
             console.error(error);
         }
     };
     
+    function enactChoice (menuChoice) {
+        switch (menuChoice) {
+            case 'View All Departments':
+                return viewDepts();
+                break;
+            case 'View All Roles':
+                return viewRoles();
+                break;
+            case 'View All Employees':
+                return viewEmployees();
+                break;
+            case 'Add A Department':
+                return addDept();
+                break;
+            case 'Add A Role':
+                return addRole();
+                break;
+            case 'Add An Employee':
+                return addEmployee();
+                break;
+            case 'Update An Employee Role':
+                return updateEmployee();
+                break;
+            default:
+                return quit();
+        };
+    };
+
+    async function quit() {
+        console.log('Thank you for using Simple Employee Department CMS');
+        await db.end();
+    };
+
     // Get from the db
     async function getDepts(id) {
         if (id === undefined) {
@@ -121,7 +140,6 @@ async function init() {
     async function viewDepts(id) {
         try {
             console.table(await getDepts(id));
-            return viewMenu();
         } catch (error) {
             console.error(error);
         }
@@ -131,7 +149,6 @@ async function init() {
         try {
             console.log('\n');
             console.table(await getRoles(id));
-            return viewMenu();
         } catch (error) {
             console.error(error);
         }
@@ -141,7 +158,6 @@ async function init() {
         try {
             console.log('\n');
             console.table(await getEmployees(id));
-            return viewMenu();
         } catch (error) {
             console.error(error);
         }
@@ -157,8 +173,6 @@ async function init() {
     
             console.log('\nAdded to departments:');
             await viewDepts(dbAddRow[0].insertId);
-            
-            return viewMenu();
         } catch (error) {
             console.error(error);
         };
@@ -180,8 +194,6 @@ async function init() {
     
             console.log('\n Added to roles:');
             await viewRoles(dbAddRow[0].insertId);
-            
-            return viewMenu();
         } catch (error) {
             console.error(error);
         };
@@ -212,8 +224,6 @@ async function init() {
     
             console.log('\nAdded to employees:');
             await viewEmployees(dbAddRow[0].insertId);
-    
-            return viewMenu();
         } catch (error) {
             console.error(error);
         };
@@ -245,14 +255,12 @@ async function init() {
             console.log('\nUpdated employee:');
             await viewEmployees(dbAddRow[0].insertId);
     
-            return viewMenu();
-    
         } catch (error) {
             console.error(error);
         };
     };
     
-    viewMenu();
+    menuLoop();
 };
 
 init();
