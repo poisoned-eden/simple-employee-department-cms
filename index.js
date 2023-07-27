@@ -21,9 +21,7 @@ async function init() {
         var menuChoice = "";
         
         do {
-            console.log(menuChoice + ' not quit');
             menuChoice = await viewMenu();
-            console.log(menuChoice);
             await enactChoice(menuChoice);
             console.log('------');
         } while (menuChoice != 'Quit');
