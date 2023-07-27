@@ -24,7 +24,7 @@ async function init() {
             console.log(menuChoice + ' not quit');
             menuChoice = await viewMenu();
             console.log(menuChoice);
-            enactChoice(menuChoice);
+            await enactChoice(menuChoice);
             console.log('------');
         } while (menuChoice != 'Quit');
     };
@@ -38,28 +38,28 @@ async function init() {
         }
     };
     
-    function enactChoice (menuChoice) {
+    async function enactChoice (menuChoice) {
         switch (menuChoice) {
             case 'View All Departments':
-                return viewDepts();
+                await viewDepts();
                 break;
             case 'View All Roles':
-                return viewRoles();
+                await viewRoles();
                 break;
             case 'View All Employees':
-                return viewEmployees();
+                await viewEmployees();
                 break;
             case 'Add A Department':
-                return addDept();
+                await addDept();
                 break;
             case 'Add A Role':
-                return addRole();
+                await addRole();
                 break;
             case 'Add An Employee':
-                return addEmployee();
+                await addEmployee();
                 break;
             case 'Update An Employee Role':
-                return updateEmployee();
+                await updateEmployee();
                 break;
             default:
                 return quit();
@@ -147,7 +147,6 @@ async function init() {
     
     async function viewRoles(id) {
         try {
-            console.log('\n');
             console.table(await getRoles(id));
         } catch (error) {
             console.error(error);
@@ -156,7 +155,6 @@ async function init() {
     
     async function viewEmployees(id) {
         try {
-            console.log('\n');
             console.table(await getEmployees(id));
         } catch (error) {
             console.error(error);
@@ -192,7 +190,7 @@ async function init() {
     
             const dbAddRow = await db.execute("INSERT INTO roles SET role_title = ?, salary = ?, department_id = ?;", [newRole.roleTitle, newRole.roleSalary, newRole.roleDept]);
     
-            console.log('\n Added to roles:');
+            console.log('\nAdded to roles:');
             await viewRoles(dbAddRow[0].insertId);
         } catch (error) {
             console.error(error);
@@ -249,11 +247,9 @@ async function init() {
             });
     
             const updateEmployee = await inquirer.prompt(questions.updateEmployeeQ);
-    
-            const dbAddRow = await db.execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
-    
+            await db.execute("UPDATE employees SET role_id = ? WHERE id = ?;", [updateEmployee.updatedRole, updateEmployee.employeeToUpdate]);
             console.log('\nUpdated employee:');
-            await viewEmployees(dbAddRow[0].insertId);
+            await viewEmployees(updateEmployee.employeeToUpdate);
     
         } catch (error) {
             console.error(error);
